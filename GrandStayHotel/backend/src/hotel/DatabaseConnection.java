@@ -28,8 +28,8 @@ public class DatabaseConnection {
                 Class.forName("com.mysql.cj.jdbc.Driver");
                 connection = DriverManager.getConnection(URL, DB_USER, DB_PASSWORD);
                 System.out.println("Database connected: " + DB_HOST + ":" + DB_PORT + "/" + DB_NAME);
-            } catch (ClassNotFoundException e) {
-                throw new SQLException("MySQL JDBC Driver not found: " + e.getMessage());
+            } catch (Exception e) {
+                throw new SQLException("Failed to connect to " + DB_HOST + ":" + DB_PORT + " - " + e.getMessage());
             }
         }
         return connection;
