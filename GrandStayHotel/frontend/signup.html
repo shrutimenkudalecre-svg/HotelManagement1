@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Grand Stay Hotel – Sign Up</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', sans-serif;
+    background: linear-gradient(135deg, #1a4a1a 0%, #2d7a2d 50%, #1a4a1a 100%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .bubbles { position: fixed; inset: 0; overflow: hidden; pointer-events: none; }
+  .bubble {
+    position: absolute; border-radius: 50%;
+    background: rgba(255,255,255,0.05);
+    animation: float 8s infinite ease-in-out;
+  }
+  @keyframes float {
+    0%,100% { transform: translateY(0) scale(1); }
+    50% { transform: translateY(-30px) scale(1.05); }
+  }
+  .card {
+    background: rgba(10,10,10,0.85);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 20px;
+    padding: 45px 40px;
+    width: 480px;
+    position: relative;
+    z-index: 10;
+    box-shadow: 0 30px 70px rgba(0,0,0,0.6);
+  }
+  h2 { color: white; text-align: center; font-size: 26px; margin-bottom: 8px; }
+  .subtitle { color: rgba(255,255,255,0.5); text-align: center; font-size: 13px; margin-bottom: 30px; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+  .form-group { margin-bottom: 18px; }
+  .form-group.full { grid-column: 1/-1; }
+  label { display: block; color: rgba(255,255,255,0.7); font-size: 13px; margin-bottom: 6px; font-weight: 500; }
+  input, select {
+    width: 100%;
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 10px;
+    padding: 12px 15px;
+    color: white;
+    font-size: 14px;
+    outline: none;
+    transition: all 0.3s;
+  }
+  input:focus, select:focus { border-color: #4caf50; background: rgba(76,175,80,0.1); }
+  select option { background: #1a1a1a; }
+  .btn { width: 100%; padding: 14px; border: none; border-radius: 10px; cursor: pointer; font-size: 16px; font-weight: 700; transition: all 0.3s; }
+  .btn-green { background: linear-gradient(135deg, #4caf50, #2e7d32); color: white; }
+  .btn-green:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(76,175,80,0.4); }
+  .btn-outline { background: transparent; border: 2px solid rgba(255,255,255,0.3); color: white; margin-top: 10px; }
+  .btn-outline:hover { background: rgba(255,255,255,0.1); }
+  .alert { padding: 12px 16px; border-radius: 8px; margin-bottom: 18px; font-size: 14px; display: none; }
+  .alert.error { background: rgba(220,53,69,0.2); border: 1px solid rgba(220,53,69,0.4); color: #ff6b7a; }
+  .alert.success { background: rgba(40,167,69,0.2); border: 1px solid rgba(40,167,69,0.4); color: #5fdd80; }
+  .info-box {
+    background: rgba(245,200,66,0.1);
+    border: 1px solid rgba(245,200,66,0.3);
+    border-radius: 10px;
+    padding: 12px 15px;
+    color: #f5c842;
+    font-size: 13px;
+    margin-bottom: 20px;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+<div class="bubbles" id="bubbles"></div>
+<div class="card">
+  <h2>✨ Create Account</h2>
+  <p class="subtitle">Grand Stay Hotel – Customer Registration</p>
+  <div class="info-box">⏳ Your account will be active after Admin approval</div>
+  <div id="alert" class="alert"></div>
+  <div class="form-row">
+    <div class="form-group">
+      <label>Full Name *</label>
+      <input type="text" id="name" placeholder="Your Name">
+    </div>
+    <div class="form-group">
+      <label>Mobile Number</label>
+      <input type="tel" id="mobile" placeholder="+91 00000 00000">
+    </div>
+    <div class="form-group full">
+      <label>Email Address *</label>
+      <input type="email" id="email" placeholder="your@email.com">
+    </div>
+    <div class="form-group full">
+      <label>Password *</label>
+      <input type="password" id="password" placeholder="Min. 6 characters">
+    </div>
+    <div class="form-group full">
+      <label>Security Question</label>
+      <select id="secQuestion">
+        <option>Your Favourite Game</option>
+        <option>Your Mother's Maiden Name</option>
+        <option>Your Pet's Name</option>
+        <option>Your Childhood Nickname</option>
+        <option>Your Favourite Movie</option>
+      </select>
+    </div>
+    <div class="form-group full">
+      <label>Security Answer</label>
+      <input type="text" id="secAnswer" placeholder="Your answer">
+    </div>
+  </div>
+  <button class="btn btn-green" onclick="signup()">Sign Up Now</button>
+  <button class="btn btn-outline" onclick="window.location.href='index.html'">← Back to Login</button>
+</div>
+
+<script>
+const API = 'http://localhost:8080/api';
+
+// Bubbles
+const b = document.getElementById('bubbles');
+for (let i = 0; i < 15; i++) {
+  const el = document.createElement('div');
+  el.className = 'bubble';
+  const size = 40 + Math.random() * 120;
+  el.style.cssText = `width:${size}px;height:${size}px;left:${Math.random()*100}%;top:${Math.random()*100}%;animation-delay:${Math.random()*5}s;animation-duration:${6+Math.random()*6}s`;
+  b.appendChild(el);
+}
+
+function showAlert(msg, type) {
+  const a = document.getElementById('alert');
+  a.textContent = msg;
+  a.className = `alert ${type}`;
+  a.style.display = 'block';
+}
+
+async function signup() {
+  const name = document.getElementById('name').value.trim();
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+  const mobile = document.getElementById('mobile').value.trim();
+  const security_question = document.getElementById('secQuestion').value;
+  const security_answer = document.getElementById('secAnswer').value.trim();
+
+  if (!name || !email || !password) { showAlert('Name, email and password are required.', 'error'); return; }
+  if (password.length < 6) { showAlert('Password must be at least 6 characters.', 'error'); return; }
+
+  try {
+    const res = await fetch(`${API}/customer/signup`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({name, email, password, mobile, security_question, security_answer})
+    });
+    const data = await res.json();
+    if (data.success) {
+      showAlert('✅ ' + data.message, 'success');
+      setTimeout(() => window.location.href = 'index.html', 2500);
+    } else {
+      showAlert(data.message, 'error');
+    }
+  } catch(e) {
+    showAlert('Cannot connect to server.', 'error');
+  }
+}
+</script>
+</body>
+</html>

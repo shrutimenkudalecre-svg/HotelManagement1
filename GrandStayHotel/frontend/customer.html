@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Grand Stay Hotel – Guest Portal</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', sans-serif; background: #0d1117; color: white; }
+  
+  header {
+    background: linear-gradient(135deg, #0a1628, #1a2f55);
+    padding: 0 30px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    display: flex; align-items: center; justify-content: space-between;
+    height: 65px;
+  }
+  .logo { color: #f5c842; font-size: 20px; font-weight: 700; }
+  .header-right { display: flex; align-items: center; gap: 15px; }
+  .welcome { color: rgba(255,255,255,0.7); font-size: 14px; }
+  .logout-btn {
+    background: #dc3545; color: white; border: none;
+    padding: 8px 18px; border-radius: 8px; cursor: pointer;
+    font-size: 13px; font-weight: 600;
+  }
+  
+  nav {
+    background: #161b22;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    display: flex;
+    padding: 0 30px;
+  }
+  .nav-tab {
+    padding: 16px 20px; cursor: pointer;
+    color: rgba(255,255,255,0.5); font-size: 14px;
+    border-bottom: 3px solid transparent;
+    transition: all 0.3s;
+  }
+  .nav-tab:hover { color: white; }
+  .nav-tab.active { color: #f5c842; border-bottom-color: #f5c842; }
+  
+  .main { padding: 30px; max-width: 1100px; margin: 0 auto; }
+  .page { display: none; }
+  .page.active { display: block; }
+  
+  .page-title { font-size: 24px; font-weight: 700; color: #f5c842; margin-bottom: 5px; }
+  .page-sub { color: rgba(255,255,255,0.5); font-size: 14px; margin-bottom: 25px; }
+  
+  /* Hotel Photos Grid */
+  .photos-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
+  .photo-card {
+    border-radius: 16px; padding: 50px 20px; text-align: center;
+    font-size: 18px; font-weight: 700; color: white; cursor: pointer;
+    transition: transform 0.3s; position: relative; overflow: hidden;
+  }
+  .photo-card:hover { transform: translateY(-5px); }
+  .photo-card .icon { font-size: 36px; margin-bottom: 10px; }
+  .photo-card .stars { color: #f5c842; margin-top: 10px; font-size: 14px; }
+  .c1 { background: linear-gradient(135deg, #1565c0, #0d47a1); }
+  .c2 { background: linear-gradient(135deg, #5d4037, #3e2723); }
+  .c3 { background: linear-gradient(135deg, #b71c1c, #7f0000); }
+  .c4 { background: linear-gradient(135deg, #1b5e20, #0a3d0a); }
+  .c5 { background: linear-gradient(135deg, #2e7d32, #1b5e20); }
+  .c6 { background: linear-gradient(135deg, #4a148c, #6a1b9a); }
+  .footer-txt { text-align: center; color: rgba(255,255,255,0.4); font-style: italic; margin-top: 20px; }
+  
+  /* Contact */
+  .contact-card {
+    background: #161b22; border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 16px; padding: 30px; max-width: 650px;
+  }
+  .contact-row { display: flex; padding: 14px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+  .contact-row:last-child { border-bottom: none; }
+  .contact-label { color: #f5c842; font-weight: 600; min-width: 180px; font-size: 14px; }
+  .contact-val { color: rgba(255,255,255,0.8); font-size: 14px; }
+  
+  /* Booking Form */
+  .booking-card { background: #161b22; border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 30px; max-width: 700px; }
+  .form-group { margin-bottom: 18px; }
+  label { display: block; color: rgba(255,255,255,0.6); font-size: 13px; margin-bottom: 6px; }
+  input, select, textarea {
+    width: 100%; background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1); border-radius: 10px;
+    padding: 11px 15px; color: white; font-size: 14px; outline: none;
+    transition: all 0.3s; font-family: inherit;
+  }
+  input:focus, select:focus { border-color: #f5c842; }
+  select option { background: #161b22; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+  
+  .btn { padding: 12px 22px; border: none; border-radius: 10px; cursor: pointer; font-size: 14px; font-weight: 600; transition: all 0.3s; }
+  .btn:hover { transform: translateY(-1px); }
+  .btn-yellow { background: #f5c842; color: #0a1628; }
+  .btn-green { background: #28a745; color: white; }
+  
+  .cost-display {
+    background: rgba(245,200,66,0.1); border: 1px solid rgba(245,200,66,0.2);
+    border-radius: 10px; padding: 15px; margin: 15px 0; text-align: center;
+  }
+  .cost-display .amount { font-size: 28px; font-weight: 700; color: #f5c842; }
+  .cost-display .sub { color: rgba(255,255,255,0.5); font-size: 12px; margin-top: 3px; }
+  
+  .alert { padding: 12px 16px; border-radius: 8px; margin-bottom: 15px; font-size: 14px; display: none; }
+  .alert.error { background: rgba(220,53,69,0.2); border: 1px solid rgba(220,53,69,0.4); color: #ff6b7a; }
+  .alert.success { background: rgba(40,167,69,0.2); border: 1px solid rgba(40,167,69,0.4); color: #5fdd80; }
+  
+  /* Chat */
+  .chat-container { max-width: 650px; background: #161b22; border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; overflow: hidden; }
+  .chat-messages { height: 350px; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px; }
+  .msg { max-width: 75%; padding: 12px 16px; border-radius: 16px; font-size: 14px; }
+  .msg.guest { background: rgba(245,200,66,0.15); border: 1px solid rgba(245,200,66,0.2); color: #f5c842; align-self: flex-end; }
+  .msg.admin { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.8); align-self: flex-start; }
+  .msg-time { font-size: 10px; opacity: 0.5; margin-top: 4px; }
+  .chat-input { padding: 15px; border-top: 1px solid rgba(255,255,255,0.08); display: flex; gap: 10px; }
+  .chat-input input { flex: 1; }
+  
+  .room-prices { background: rgba(255,255,255,0.03); border-radius: 10px; padding: 15px; margin-bottom: 15px; }
+  .room-prices h4 { color: #f5c842; margin-bottom: 10px; font-size: 13px; }
+  .price-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 13px; }
+  .price-row:last-child { border: none; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">🏨 Grand Stay Hotel</div>
+  <div class="header-right">
+    <div class="welcome">Welcome, <strong id="guestName">Guest</strong> 🙏</div>
+    <button class="logout-btn" onclick="logout()">Logout</button>
+  </div>
+</header>
+
+<nav>
+  <div class="nav-tab active" onclick="showTab('photos', this)">🖼 Hotel Photos</div>
+  <div class="nav-tab" onclick="showTab('contact', this)">📞 Contact Us</div>
+  <div class="nav-tab" onclick="showTab('chat', this)">💬 Chat with Manager</div>
+  <div class="nav-tab" onclick="showTab('booking', this)">🛏 Room Booking Request</div>
+</nav>
+
+<div class="main">
+
+  <!-- Hotel Photos -->
+  <div class="page active" id="page-photos">
+    <div class="page-title">🏨 Our Beautiful Hotel</div>
+    <div class="page-sub">Explore the world-class amenities at Grand Stay Hotel</div>
+    <div class="photos-grid">
+      <div class="photo-card c1"><div class="icon">🏊</div>Swimming Pool<div class="stars">⭐⭐⭐⭐⭐</div></div>
+      <div class="photo-card c2"><div class="icon">🛏</div>Deluxe Room<div class="stars">⭐⭐⭐⭐⭐</div></div>
+      <div class="photo-card c3"><div class="icon">🍽</div>Restaurant<div class="stars">⭐⭐⭐⭐⭐</div></div>
+      <div class="photo-card c4"><div class="icon">🎪</div>Event Hall<div class="stars">⭐⭐⭐⭐⭐</div></div>
+      <div class="photo-card c5"><div class="icon">🌿</div>Garden<div class="stars">⭐⭐⭐⭐⭐</div></div>
+      <div class="photo-card c6"><div class="icon">💪</div>Gym & Spa<div class="stars">⭐⭐⭐⭐⭐</div></div>
+    </div>
+    <div class="footer-txt">Luxury & Comfort at its Best — Est. 2000</div>
+  </div>
+
+  <!-- Contact Us -->
+  <div class="page" id="page-contact">
+    <div class="page-title">📞 Contact Us</div>
+    <div class="page-sub">Get in touch with Grand Stay Hotel</div>
+    <div class="contact-card">
+      <div class="contact-row"><div class="contact-label">🏨 Hotel Name:</div><div class="contact-val">Grand Stay Hotel</div></div>
+      <div class="contact-row"><div class="contact-label">📍 Address:</div><div class="contact-val">123 MG Road, Supaul, Bihar – 852131</div></div>
+      <div class="contact-row"><div class="contact-label">📞 Phone:</div><div class="contact-val">+91 85400 92862</div></div>
+      <div class="contact-row"><div class="contact-label">📱 Mobile:</div><div class="contact-val">+91 98765 43210</div></div>
+      <div class="contact-row"><div class="contact-label">✉️ Email:</div><div class="contact-val">info@grandstayhotel.com</div></div>
+      <div class="contact-row"><div class="contact-label">🌐 Website:</div><div class="contact-val">www.grandstayhotel.com</div></div>
+      <div class="contact-row"><div class="contact-label">⏰ Check-in Time:</div><div class="contact-val">12:00 PM</div></div>
+      <div class="contact-row"><div class="contact-label">⏰ Check-out Time:</div><div class="contact-val">11:00 AM</div></div>
+      <div class="contact-row"><div class="contact-label">⭐ Rating:</div><div class="contact-val">⭐⭐⭐⭐⭐ (5 Star Hotel)</div></div>
+    </div>
+  </div>
+
+  <!-- Chat with Manager -->
+  <div class="page" id="page-chat">
+    <div class="page-title">💬 Chat with Manager</div>
+    <div class="page-sub">Send a message to our hotel management team</div>
+    <div class="chat-container">
+      <div class="chat-messages" id="chatMessages">
+        <div style="text-align:center;color:rgba(255,255,255,0.3);margin:auto;">No messages yet. Start the conversation!</div>
+      </div>
+      <div class="chat-input">
+        <input type="text" id="chatInput" placeholder="Type your message...">
+        <button class="btn btn-yellow" onclick="sendChat()">Send</button>
+        <button class="btn" style="background:rgba(255,255,255,0.1);color:white;" onclick="loadMyChats()">🔄</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Room Booking Request -->
+  <div class="page" id="page-booking">
+    <div class="page-title">🛏 Room Booking Request</div>
+    <div class="page-sub">Submit a room booking request to our team</div>
+    <div id="bookingAlert" class="alert"></div>
+    <div class="booking-card">
+      <div class="room-prices">
+        <h4>💰 Room Pricing Guide</h4>
+        <div class="price-row"><span>AC – Single Bed</span><span style="color:#f5c842;">₹1,500/day</span></div>
+        <div class="price-row"><span>AC – Double Bed</span><span style="color:#f5c842;">₹2,500/day</span></div>
+        <div class="price-row"><span>NON AC – Single</span><span style="color:#f5c842;">₹800/day</span></div>
+        <div class="price-row"><span>NON AC – Double</span><span style="color:#f5c842;">₹1,200/day</span></div>
+        <div class="price-row"><span>Deluxe – King</span><span style="color:#f5c842;">₹4,000/day</span></div>
+        <div class="price-row"><span>Suite – King</span><span style="color:#f5c842;">₹7,000/day</span></div>
+      </div>
+      <div class="form-group">
+        <label>Customer Name</label>
+        <input type="text" id="bkName" readonly>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Room Type</label>
+          <select id="bkType" onchange="calcCost()">
+            <option value="">-- Select --</option>
+            <option value="AC">AC</option>
+            <option value="NON AC">NON AC</option>
+            <option value="Deluxe">Deluxe</option>
+            <option value="Suite">Suite</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Number of Guests</label>
+          <input type="number" id="bkGuests" min="1" max="10" value="1">
+        </div>
+        <div class="form-group">
+          <label>Check-in Date</label>
+          <input type="date" id="bkCheckin" onchange="calcCost()">
+        </div>
+        <div class="form-group">
+          <label>Check-out Date</label>
+          <input type="date" id="bkCheckout" onchange="calcCost()">
+        </div>
+      </div>
+      <div class="cost-display">
+        <div class="amount" id="totalCost">₹0</div>
+        <div class="sub">Estimated Total (50% advance required)</div>
+      </div>
+      <div style="display:flex;gap:10px;">
+        <button class="btn btn-yellow" onclick="calcCost()">🧮 Calculate Total</button>
+        <button class="btn btn-green" onclick="submitBooking()">💳 Pay 50% & Book</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const API = 'http://localhost:8080/api';
+let guestEmail = '';
+let totalCostVal = 0;
+
+const PRICES = { 'AC': 1500, 'NON AC': 800, 'Deluxe': 4000, 'Suite': 7000 };
+
+window.onload = () => {
+  if (localStorage.getItem('role') !== 'customer') { window.location.href = 'index.html'; return; }
+  const name = localStorage.getItem('name');
+  guestEmail = localStorage.getItem('email');
+  document.getElementById('guestName').textContent = name;
+  document.getElementById('bkName').value = name;
+  
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('bkCheckin').min = today;
+  document.getElementById('bkCheckout').min = today;
+};
+
+function logout() { localStorage.clear(); window.location.href = 'index.html'; }
+
+function showTab(name, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  el.classList.add('active');
+  if (name === 'chat') loadMyChats();
+}
+
+function calcCost() {
+  const type = document.getElementById('bkType').value;
+  const cin = document.getElementById('bkCheckin').value;
+  const cout = document.getElementById('bkCheckout').value;
+  if (!type || !cin || !cout) { document.getElementById('totalCost').textContent = '₹0'; return; }
+  const d1 = new Date(cin), d2 = new Date(cout);
+  const days = Math.max(1, Math.round((d2-d1)/(1000*60*60*24)));
+  const price = PRICES[type] || 1000;
+  totalCostVal = days * price;
+  document.getElementById('totalCost').textContent = `₹${totalCostVal.toLocaleString('en-IN')} (${days} day${days>1?'s':''})`;
+}
+
+async function submitBooking() {
+  const type = document.getElementById('bkType').value;
+  const cin = document.getElementById('bkCheckin').value;
+  const cout = document.getElementById('bkCheckout').value;
+  const guests = parseInt(document.getElementById('bkGuests').value);
+  if (!type || !cin || !cout) { showAlert('bookingAlert', 'Please fill in all booking details.', 'error'); return; }
+  if (new Date(cout) <= new Date(cin)) { showAlert('bookingAlert', 'Check-out must be after check-in.', 'error'); return; }
+  
+  const paid = totalCostVal * 0.5;
+  try {
+    const res = await fetch(`${API}/bookings/add`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        customer_email: guestEmail,
+        customer_name: localStorage.getItem('name'),
+        room_type: type,
+        checkin_date: cin,
+        checkout_date: cout,
+        num_guests: guests,
+        total_cost: totalCostVal,
+        paid_amount: paid
+      })
+    });
+    const data = await res.json();
+    showAlert('bookingAlert', data.success ? `✅ ${data.message} Paid: ₹${paid.toLocaleString('en-IN')} (50%)` : data.message, data.success ? 'success' : 'error');
+  } catch(e) {
+    showAlert('bookingAlert', 'Cannot connect to server.', 'error');
+  }
+}
+
+function showAlert(id, msg, type) {
+  const a = document.getElementById(id);
+  a.textContent = msg;
+  a.className = `alert ${type}`;
+  a.style.display = 'block';
+}
+
+async function loadMyChats() {
+  try {
+    const res = await fetch(`${API}/chat/messages`);
+    const data = await res.json();
+    const myChats = data.filter(m => m.guest_email === guestEmail).reverse();
+    const container = document.getElementById('chatMessages');
+    if (!myChats.length) {
+      container.innerHTML = '<div style="text-align:center;color:rgba(255,255,255,0.3);margin:auto;">No messages yet. Start the conversation!</div>';
+      return;
+    }
+    container.innerHTML = myChats.map(m => `
+      <div class="msg ${m.sender === 'Guest' ? 'guest' : 'admin'}">
+        ${m.message}
+        <div class="msg-time">${m.sender} • ${m.sent_at}</div>
+      </div>
+    `).join('');
+    container.scrollTop = container.scrollHeight;
+  } catch(e) {}
+}
+
+async function sendChat() {
+  const msg = document.getElementById('chatInput').value.trim();
+  if (!msg) return;
+  try {
+    await fetch(`${API}/chat/send`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ guest_email: guestEmail, message: msg, sender: 'Guest' })
+    });
+    document.getElementById('chatInput').value = '';
+    loadMyChats();
+  } catch(e) {}
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && document.getElementById('page-chat').classList.contains('active')) sendChat();
+});
+</script>
+</body>
+</html>

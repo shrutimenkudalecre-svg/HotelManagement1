@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Grand Stay Hotel – Admin Dashboard</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', sans-serif; background: #0d1117; color: white; display: flex; min-height: 100vh; }
+  
+  /* Sidebar */
+  .sidebar {
+    width: 260px; background: #161b22; border-right: 1px solid rgba(255,255,255,0.08);
+    display: flex; flex-direction: column; position: fixed; height: 100vh; overflow-y: auto;
+  }
+  .sidebar-header {
+    padding: 25px 20px; border-bottom: 1px solid rgba(255,255,255,0.08);
+    background: linear-gradient(135deg, #1a2f55, #0d1e3d);
+  }
+  .sidebar-header h2 { color: #f5c842; font-size: 16px; font-weight: 700; }
+  .sidebar-header p { color: rgba(255,255,255,0.5); font-size: 12px; margin-top: 3px; }
+  .admin-info { padding: 15px 20px; background: rgba(245,200,66,0.05); border-bottom: 1px solid rgba(255,255,255,0.08); }
+  .admin-info span { color: #f5c842; font-size: 13px; font-weight: 600; }
+  .admin-info small { color: rgba(255,255,255,0.4); display: block; font-size: 11px; }
+  
+  .nav-section { padding: 12px 0; }
+  .nav-label { padding: 8px 20px; color: rgba(255,255,255,0.3); font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; }
+  .nav-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 20px; cursor: pointer;
+    color: rgba(255,255,255,0.6); font-size: 14px;
+    transition: all 0.2s; border-left: 3px solid transparent;
+  }
+  .nav-item:hover { background: rgba(255,255,255,0.05); color: white; }
+  .nav-item.active { background: rgba(245,200,66,0.1); color: #f5c842; border-left-color: #f5c842; }
+  .nav-item .icon { font-size: 18px; width: 24px; text-align: center; }
+  .badge {
+    margin-left: auto; background: #dc3545; color: white;
+    border-radius: 10px; padding: 2px 8px; font-size: 11px; font-weight: 700;
+  }
+  .logout-btn {
+    margin: 20px; background: linear-gradient(135deg, #dc3545, #a71d2a);
+    color: white; border: none; border-radius: 10px; padding: 12px;
+    cursor: pointer; font-size: 14px; font-weight: 600; width: calc(100% - 40px);
+    transition: all 0.3s;
+  }
+  .logout-btn:hover { transform: translateY(-1px); }
+  
+  /* Main Content */
+  .main { margin-left: 260px; flex: 1; padding: 25px; }
+  .page { display: none; }
+  .page.active { display: block; }
+  
+  .page-header { margin-bottom: 25px; }
+  .page-header h1 { font-size: 24px; color: white; }
+  .page-header p { color: rgba(255,255,255,0.5); font-size: 14px; margin-top: 5px; }
+  
+  /* Cards */
+  .card {
+    background: #161b22; border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 16px; padding: 25px; margin-bottom: 20px;
+  }
+  .card h3 { color: #f5c842; margin-bottom: 15px; font-size: 16px; }
+  
+  /* Stats */
+  .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 25px; }
+  .stat-card {
+    background: #161b22; border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 16px; padding: 20px; text-align: center;
+  }
+  .stat-card .number { font-size: 32px; font-weight: 700; color: #f5c842; }
+  .stat-card .label { color: rgba(255,255,255,0.5); font-size: 12px; margin-top: 5px; }
+  
+  /* Table */
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; }
+  th { background: rgba(245,200,66,0.1); color: #f5c842; padding: 12px 15px; text-align: left; font-size: 13px; font-weight: 600; }
+  td { padding: 12px 15px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 13px; color: rgba(255,255,255,0.8); }
+  tr:hover td { background: rgba(255,255,255,0.03); }
+  
+  /* Form elements */
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+  .form-group { margin-bottom: 15px; }
+  .form-group.full { grid-column: 1/-1; }
+  label { display: block; color: rgba(255,255,255,0.6); font-size: 13px; margin-bottom: 6px; }
+  input[type=text], input[type=email], input[type=date], input[type=number], input[type=tel], select, textarea {
+    width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 10px; padding: 10px 14px; color: white; font-size: 14px; outline: none;
+    transition: all 0.3s; font-family: inherit;
+  }
+  input:focus, select:focus, textarea:focus { border-color: #f5c842; background: rgba(245,200,66,0.05); }
+  select option { background: #161b22; }
+  textarea { resize: vertical; min-height: 80px; }
+  
+  /* Buttons */
+  .btn { padding: 10px 18px; border: none; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600; transition: all 0.3s; }
+  .btn:hover { transform: translateY(-1px); }
+  .btn-yellow { background: #f5c842; color: #0a1628; }
+  .btn-green { background: #28a745; color: white; }
+  .btn-red { background: #dc3545; color: white; }
+  .btn-blue { background: #007bff; color: white; }
+  .btn-gray { background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2); }
+  .btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
+  
+  /* Status badges */
+  .status { padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+  .status.booked, .status.confirmed { background: rgba(220,53,69,0.2); color: #ff6b7a; }
+  .status.available { background: rgba(40,167,69,0.2); color: #5fdd80; }
+  .status.pending { background: rgba(255,193,7,0.2); color: #ffc107; }
+  .status.approved { background: rgba(40,167,69,0.2); color: #5fdd80; }
+  .status.rejected { background: rgba(220,53,69,0.2); color: #ff6b7a; }
+  
+  /* Alert */
+  .alert { padding: 12px 16px; border-radius: 8px; margin-bottom: 15px; font-size: 14px; display: none; }
+  .alert.error { background: rgba(220,53,69,0.2); border: 1px solid rgba(220,53,69,0.4); color: #ff6b7a; }
+  .alert.success { background: rgba(40,167,69,0.2); border: 1px solid rgba(40,167,69,0.4); color: #5fdd80; }
+  
+  .refresh-btn { float: right; }
+  .section-title { color: #f5c842; font-size: 18px; font-weight: 700; margin-bottom: 20px; display: flex; align-items: center; gap: 8px; }
+
+  /* Modal */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.7); z-index: 1000;
+    align-items: center; justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: #161b22; border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 16px; padding: 30px; width: 600px; max-width: 90vw;
+    max-height: 85vh; overflow-y: auto;
+  }
+  .modal h3 { color: #f5c842; margin-bottom: 20px; }
+  .modal-close { float: right; background: none; border: none; color: white; font-size: 22px; cursor: pointer; }
+</style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<div class="sidebar">
+  <div class="sidebar-header">
+    <h2>🏨 Grand Stay Hotel</h2>
+    <p>Admin Control Panel</p>
+  </div>
+  <div class="admin-info">
+    <span id="adminName">Admin</span>
+    <small>🔴 Administrator</small>
+  </div>
+  <div class="nav-section">
+    <div class="nav-label">Management</div>
+    <div class="nav-item active" onclick="showPage('dashboard')"><span class="icon">📊</span> Dashboard</div>
+    <div class="nav-item" onclick="showPage('rooms')"><span class="icon">🛏</span> Manage Rooms</div>
+    <div class="nav-item" onclick="showPage('checkin')"><span class="icon">✅</span> Customer Check In</div>
+    <div class="nav-item" onclick="showPage('checkout')"><span class="icon">🚪</span> Customer Check Out</div>
+    <div class="nav-label">Bookings</div>
+    <div class="nav-item" onclick="showPage('bookings')"><span class="icon">🔔</span> Booking Requests <span class="badge" id="bookingBadge">0</span></div>
+    <div class="nav-item" onclick="showPage('confirmation')"><span class="icon">📋</span> Booking Confirmation</div>
+    <div class="nav-label">Reports</div>
+    <div class="nav-item" onclick="showPage('bills')"><span class="icon">🧾</span> Customer Bills</div>
+    <div class="nav-label">Users</div>
+    <div class="nav-item" onclick="showPage('users')"><span class="icon">👥</span> Manage Users <span class="badge" id="userBadge">0</span></div>
+    <div class="nav-item" onclick="showPage('chat')"><span class="icon">💬</span> Reply to Chats</div>
+  </div>
+  <button class="logout-btn" onclick="logout()">🚪 Logout</button>
+</div>
+
+<!-- Main Content -->
+<div class="main">
+
+  <!-- Dashboard -->
+  <div class="page active" id="page-dashboard">
+    <div class="page-header">
+      <h1>📊 Dashboard</h1>
+      <p>Welcome back! Here's what's happening at Grand Stay Hotel today.</p>
+    </div>
+    <div class="stats-grid">
+      <div class="stat-card"><div class="number" id="stat-rooms">—</div><div class="label">Total Rooms</div></div>
+      <div class="stat-card"><div class="number" id="stat-booked">—</div><div class="label">Booked Rooms</div></div>
+      <div class="stat-card"><div class="number" id="stat-bookings">—</div><div class="label">Pending Bookings</div></div>
+      <div class="stat-card"><div class="number" id="stat-users">—</div><div class="label">Pending Users</div></div>
+    </div>
+    <div class="card">
+      <h3>📌 Quick Actions</h3>
+      <div class="btn-group">
+        <button class="btn btn-yellow" onclick="showPage('checkin')">+ Check In Customer</button>
+        <button class="btn btn-blue" onclick="showPage('rooms')">+ Add Room</button>
+        <button class="btn btn-green" onclick="showPage('users')">✅ Approve Users</button>
+        <button class="btn btn-gray" onclick="loadDashboard()">🔄 Refresh Stats</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Manage Rooms -->
+  <div class="page" id="page-rooms">
+    <div class="page-header"><h1>🛏 Manage Rooms</h1></div>
+    <div id="roomAlert" class="alert"></div>
+    <div class="card">
+      <h3>Add / Update Room</h3>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Room Number</label>
+          <input type="text" id="roomNumber" placeholder="e.g. 101">
+        </div>
+        <div class="form-group">
+          <label>Room Type</label>
+          <select id="roomType">
+            <option>AC</option><option>NON AC</option><option>Deluxe</option><option>Suite</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Bed Type</label>
+          <select id="bedType">
+            <option>Single</option><option>Double</option><option>King</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Price Per Day (₹)</label>
+          <input type="number" id="roomPrice" placeholder="1500">
+        </div>
+      </div>
+      <div class="btn-group">
+        <button class="btn btn-yellow" onclick="addRoom()">+ Add Room</button>
+        <button class="btn btn-green" onclick="updateRoom()">✏ Update</button>
+        <button class="btn btn-red" onclick="deleteRoom()">🗑 Delete</button>
+        <button class="btn btn-gray" onclick="clearRoomForm()">✕ Clear</button>
+      </div>
+    </div>
+    <div class="card">
+      <h3>All Rooms <button class="btn btn-gray refresh-btn" onclick="loadRooms()">🔄</button></h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Room No</th><th>Type</th><th>Bed</th><th>Price/Day</th><th>Status</th></tr></thead>
+          <tbody id="roomsTable"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Check In -->
+  <div class="page" id="page-checkin">
+    <div class="page-header"><h1>✅ Customer Check In</h1></div>
+    <div id="checkinAlert" class="alert"></div>
+    <div class="card">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Customer Name *</label>
+          <input type="text" id="ciName" placeholder="Full Name">
+        </div>
+        <div class="form-group">
+          <label>Mobile Number *</label>
+          <input type="tel" id="ciMobile" placeholder="10-digit mobile">
+        </div>
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" id="ciEmail" placeholder="customer@email.com">
+        </div>
+        <div class="form-group">
+          <label>Gender</label>
+          <select id="ciGender"><option>Male</option><option>Female</option><option>Other</option></select>
+        </div>
+        <div class="form-group">
+          <label>Nationality</label>
+          <input type="text" id="ciNationality" placeholder="Indian">
+        </div>
+        <div class="form-group">
+          <label>Aadhar Number</label>
+          <input type="text" id="ciAadhar" placeholder="1234 5678 9012">
+        </div>
+        <div class="form-group full">
+          <label>Address</label>
+          <input type="text" id="ciAddress" placeholder="Full address">
+        </div>
+        <div class="form-group">
+          <label>Check-in Date</label>
+          <input type="date" id="ciDate">
+        </div>
+        <div class="form-group">
+          <label>Room Type</label>
+          <select id="ciRoomType" onchange="filterRooms()">
+            <option value="">All Types</option>
+            <option>AC</option><option>NON AC</option><option>Deluxe</option><option>Suite</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Bed Type</label>
+          <select id="ciBedType" onchange="filterRooms()">
+            <option value="">All Beds</option>
+            <option>Single</option><option>Double</option><option>King</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Room Number</label>
+          <select id="ciRoomNumber" onchange="fillPrice()"></select>
+        </div>
+        <div class="form-group">
+          <label>Price Per Day (₹)</label>
+          <input type="text" id="ciPrice" readonly placeholder="Auto-filled">
+        </div>
+      </div>
+      <div class="btn-group">
+        <button class="btn btn-yellow" onclick="checkIn()">✅ Allot Room</button>
+        <button class="btn btn-gray" onclick="clearCheckin()">✕ Clear</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Check Out -->
+  <div class="page" id="page-checkout">
+    <div class="page-header"><h1>🚪 Customer Check Out</h1></div>
+    <div id="coAlert" class="alert"></div>
+    <div class="card">
+      <div style="display:flex;gap:10px;margin-bottom:15px;">
+        <input type="text" id="coRoomNumber" placeholder="Enter Room Number" style="max-width:200px;">
+        <button class="btn btn-yellow" onclick="searchCheckout()">🔍 Search</button>
+      </div>
+      <div id="coDetails" style="display:none;">
+        <div class="form-row" style="margin-bottom:15px;">
+          <div><label>Customer Name</label><input type="text" id="coName" readonly></div>
+          <div><label>Mobile</label><input type="text" id="coMobile" readonly></div>
+          <div><label>Email</label><input type="text" id="coEmail" readonly></div>
+          <div><label>Price Per Day</label><input type="text" id="coPrice" readonly></div>
+          <div><label>Check-in Date</label><input type="text" id="coCheckin" readonly></div>
+          <div><label>Today (Checkout)</label><input type="text" id="coToday" readonly></div>
+          <div><label>Number of Days</label><input type="number" id="coDays" readonly></div>
+          <div><label>Total Amount (₹)</label><input type="text" id="coTotal" readonly></div>
+        </div>
+        <button class="btn btn-red" onclick="checkOut()">🚪 Check Out & Generate Bill</button>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Currently Checked-in Guests</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Name</th><th>Mobile</th><th>Email</th><th>Room</th><th>Bed</th><th>Type</th><th>Price</th></tr></thead>
+          <tbody id="coTable"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Booking Requests -->
+  <div class="page" id="page-bookings">
+    <div class="page-header"><h1>🔔 Booking Requests</h1><p>Refresh to load the latest booking requests.</p></div>
+    <div class="card">
+      <button class="btn btn-gray" style="margin-bottom:15px;" onclick="loadBookings()">🔄 Refresh</button>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>ID</th><th>Customer Email</th><th>Room Type</th><th>Check-in</th><th>Check-out</th><th>Guests</th><th>Total</th><th>Paid</th><th>Status</th><th>Action</th></tr></thead>
+          <tbody id="bookingsTable"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Booking Confirmation -->
+  <div class="page" id="page-confirmation">
+    <div class="page-header"><h1>📋 Room Booking Confirmation</h1></div>
+    <div id="confAlert" class="alert"></div>
+    <div class="card" style="max-width:600px;">
+      <div class="form-group">
+        <label>Select Customer (Pending Booking)</label>
+        <select id="confCustomer"></select>
+      </div>
+      <div class="form-group">
+        <label>Room Number</label>
+        <input type="text" id="confRoom" placeholder="Assigned room number">
+      </div>
+      <div class="form-group">
+        <label>Pending Payment (₹)</label>
+        <input type="number" id="confPending" placeholder="0.00">
+      </div>
+      <div class="form-group">
+        <label>Description / Notes</label>
+        <textarea id="confDesc" placeholder="Special instructions, notes..."></textarea>
+      </div>
+      <button class="btn btn-green" onclick="confirmBooking()">✅ Submit & Send Confirmation</button>
+    </div>
+  </div>
+
+  <!-- Bills -->
+  <div class="page" id="page-bills">
+    <div class="page-header"><h1>🧾 Customer Bills</h1></div>
+    <div class="card">
+      <div style="display:flex;gap:10px;margin-bottom:15px;align-items:center;">
+        <label style="margin:0;">Search by Checkout Date:</label>
+        <input type="date" id="billDate" style="max-width:200px;">
+        <button class="btn btn-yellow" onclick="searchBills()">🔍 Search</button>
+        <button class="btn btn-gray" onclick="loadBills()">🔄 Refresh</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Bill ID</th><th>Room</th><th>Name</th><th>Mobile</th><th>Nationality</th><th>Gender</th><th>Check-in</th><th>Check-out</th><th>Days</th><th>Total ₹</th></tr></thead>
+          <tbody id="billsTable"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Manage Users -->
+  <div class="page" id="page-users">
+    <div class="page-header"><h1>👥 Manage Users</h1><p>Approve or reject customer account requests.</p></div>
+    <div id="usersAlert" class="alert"></div>
+    <div class="card">
+      <button class="btn btn-gray" style="margin-bottom:15px;" onclick="loadUsers()">🔄 Refresh</button>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Mobile</th><th>Registered</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody id="usersTable"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chat -->
+  <div class="page" id="page-chat">
+    <div class="page-header"><h1>💬 Guest Chat Messages</h1></div>
+    <div class="card">
+      <div class="table-wrap" style="max-height:350px;overflow-y:auto;">
+        <table>
+          <thead><tr><th>ID</th><th>Guest Email</th><th>Message</th><th>Sender</th><th>Time</th></tr></thead>
+          <tbody id="chatTable"></tbody>
+        </table>
+      </div>
+      <div style="margin-top:20px;">
+        <label>Reply to selected guest:</label>
+        <div style="display:flex;gap:10px;margin-top:8px;">
+          <input type="text" id="chatReply" placeholder="Type your reply...">
+          <button class="btn btn-yellow" onclick="sendReply()">Send Reply</button>
+          <button class="btn btn-gray" onclick="loadChat()">🔄 Load</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const API = 'http://localhost:8080/api';
+let allRooms = [];
+let selectedChatEmail = '';
+let selectedBookingId = null;
+let coCheckinId = null, coRoomId = null;
+
+// Auth check
+window.onload = () => {
+  if (localStorage.getItem('role') !== 'admin') { window.location.href = 'index.html'; return; }
+  document.getElementById('adminName').textContent = localStorage.getItem('name') || 'Admin';
+  loadDashboard();
+  document.getElementById('ciDate').value = new Date().toISOString().split('T')[0];
+};
+
+function logout() {
+  localStorage.clear();
+  window.location.href = 'index.html';
+}
+
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  event.currentTarget.classList.add('active');
+  
+  if (name === 'rooms') loadRooms();
+  if (name === 'checkout') { loadCheckoutGuests(); }
+  if (name === 'bookings') loadBookings();
+  if (name === 'bills') loadBills();
+  if (name === 'users') loadUsers();
+  if (name === 'chat') loadChat();
+  if (name === 'confirmation') { loadBookings(); loadConfirmationDropdown(); }
+  if (name === 'checkin') loadRoomsForCheckin();
+}
+
+function showAlert(id, msg, type) {
+  const a = document.getElementById(id);
+  a.textContent = msg;
+  a.className = `alert ${type}`;
+  a.style.display = 'block';
+  setTimeout(() => a.style.display = 'none', 4000);
+}
+
+async function api(path, method='GET', body=null) {
+  const opts = { method, headers: {'Content-Type': 'application/json'} };
+  if (body) opts.body = JSON.stringify(body);
+  const res = await fetch(API + path, opts);
+  return res.json();
+}
+
+// === DASHBOARD ===
+async function loadDashboard() {
+  try {
+    const rooms = await api('/rooms');
+    const bookings = await api('/bookings');
+    const users = await api('/customers/pending');
+    const booked = rooms.filter(r => r.status === 'Booked').length;
+    const pending = bookings.filter(b => b.status === 'Pending').length;
+    const pendingUsers = users.filter(u => u.is_approved === 0).length;
+    document.getElementById('stat-rooms').textContent = rooms.length;
+    document.getElementById('stat-booked').textContent = booked;
+    document.getElementById('stat-bookings').textContent = pending;
+    document.getElementById('stat-users').textContent = pendingUsers;
+    document.getElementById('bookingBadge').textContent = pending;
+    document.getElementById('userBadge').textContent = pendingUsers;
+  } catch(e) { console.error(e); }
+}
+
+// === ROOMS ===
+async function loadRooms() {
+  allRooms = await api('/rooms');
+  const tb = document.getElementById('roomsTable');
+  tb.innerHTML = allRooms.map(r => `
+    <tr onclick="selectRoom('${r.room_number}','${r.room_type}','${r.bed_type}',${r.price_per_day})" style="cursor:pointer;">
+      <td>${r.room_number}</td>
+      <td>${r.room_type}</td>
+      <td>${r.bed_type}</td>
+      <td>₹${r.price_per_day}</td>
+      <td><span class="status ${r.status === 'Booked' ? 'booked' : 'available'}">${r.status}</span></td>
+    </tr>
+  `).join('');
+}
+
+function selectRoom(num, type, bed, price) {
+  document.getElementById('roomNumber').value = num;
+  document.getElementById('roomType').value = type;
+  document.getElementById('bedType').value = bed;
+  document.getElementById('roomPrice').value = price;
+}
+
+async function addRoom() {
+  const d = { room_number: document.getElementById('roomNumber').value.trim(), room_type: document.getElementById('roomType').value, bed_type: document.getElementById('bedType').value, price_per_day: parseFloat(document.getElementById('roomPrice').value) };
+  if (!d.room_number || !d.price_per_day) { showAlert('roomAlert', 'Room number and price are required.', 'error'); return; }
+  const res = await api('/rooms/add', 'POST', d);
+  showAlert('roomAlert', res.message, res.success ? 'success' : 'error');
+  if (res.success) { loadRooms(); clearRoomForm(); }
+}
+
+async function updateRoom() {
+  const d = { room_number: document.getElementById('roomNumber').value.trim(), room_type: document.getElementById('roomType').value, bed_type: document.getElementById('bedType').value, price_per_day: parseFloat(document.getElementById('roomPrice').value) };
+  const res = await api('/rooms/update', 'POST', d);
+  showAlert('roomAlert', res.message, res.success ? 'success' : 'error');
+  if (res.success) loadRooms();
+}
+
+async function deleteRoom() {
+  const num = document.getElementById('roomNumber').value.trim();
+  if (!num) { showAlert('roomAlert', 'Select a room first.', 'error'); return; }
+  if (!confirm('Delete room ' + num + '?')) return;
+  const res = await api('/rooms/delete', 'POST', { room_number: num });
+  showAlert('roomAlert', res.message, res.success ? 'success' : 'error');
+  if (res.success) { loadRooms(); clearRoomForm(); }
+}
+
+function clearRoomForm() {
+  ['roomNumber','roomPrice'].forEach(id => document.getElementById(id).value = '');
+}
+
+// === CHECK IN ===
+async function loadRoomsForCheckin() {
+  allRooms = await api('/rooms');
+  filterRooms();
+}
+
+function filterRooms() {
+  const type = document.getElementById('ciRoomType').value;
+  const bed = document.getElementById('ciBedType').value;
+  const select = document.getElementById('ciRoomNumber');
+  select.innerHTML = '<option value="">-- Select Room --</option>';
+  allRooms.filter(r => r.status === 'Available' && (!type || r.room_type === type) && (!bed || r.bed_type === bed))
+    .forEach(r => {
+      const o = document.createElement('option');
+      o.value = r.room_number;
+      o.dataset.price = r.price_per_day;
+      o.textContent = `Room ${r.room_number} – ${r.room_type} (${r.bed_type}) – ₹${r.price_per_day}/day`;
+      select.appendChild(o);
+    });
+  fillPrice();
+}
+
+function fillPrice() {
+  const sel = document.getElementById('ciRoomNumber');
+  const opt = sel.options[sel.selectedIndex];
+  document.getElementById('ciPrice').value = opt && opt.dataset.price ? '₹' + opt.dataset.price : '';
+}
+
+async function checkIn() {
+  const d = {
+    name: document.getElementById('ciName').value.trim(),
+    mobile: document.getElementById('ciMobile').value.trim(),
+    email: document.getElementById('ciEmail').value.trim(),
+    gender: document.getElementById('ciGender').value,
+    nationality: document.getElementById('ciNationality').value.trim(),
+    aadhar_number: document.getElementById('ciAadhar').value.trim(),
+    address: document.getElementById('ciAddress').value.trim(),
+    checkin_date: document.getElementById('ciDate').value,
+    room_number: document.getElementById('ciRoomNumber').value
+  };
+  if (!d.name || !d.mobile || !d.checkin_date || !d.room_number) { showAlert('checkinAlert', 'Name, mobile, date and room are required.', 'error'); return; }
+  const res = await api('/checkin', 'POST', d);
+  showAlert('checkinAlert', res.message, res.success ? 'success' : 'error');
+  if (res.success) { clearCheckin(); loadRoomsForCheckin(); }
+}
+
+function clearCheckin() {
+  ['ciName','ciMobile','ciEmail','ciNationality','ciAadhar','ciAddress'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('ciDate').value = new Date().toISOString().split('T')[0];
+  document.getElementById('ciPrice').value = '';
+}
+
+// === CHECK OUT ===
+async function loadCheckoutGuests() {
+  const data = await api('/checkout/search?room=all');
+  // Load all checked-in via rooms search with empty
+  try {
+    const rooms = await api('/rooms');
+    const bookedRooms = rooms.filter(r => r.status === 'Booked');
+    const tb = document.getElementById('coTable');
+    if (bookedRooms.length === 0) { tb.innerHTML = '<tr><td colspan="7" style="text-align:center;color:rgba(255,255,255,0.4);">No checked-in guests</td></tr>'; return; }
+    // Search each booked room
+    let rows = '';
+    for (const r of bookedRooms) {
+      const guests = await api('/checkout/search?room=' + r.room_number);
+      guests.forEach(g => {
+        rows += `<tr onclick="fillCheckout('${r.room_number}')" style="cursor:pointer;">
+          <td>${g.name}</td><td>${g.mobile}</td><td>${g.email || '-'}</td>
+          <td>${g.room_number}</td><td>${g.bed_type}</td><td>${g.room_type}</td><td>₹${g.price_per_day}</td>
+        </tr>`;
+      });
+    }
+    tb.innerHTML = rows || '<tr><td colspan="7" style="text-align:center;">No checked-in guests</td></tr>';
+  } catch(e) {}
+}
+
+async function searchCheckout() {
+  const room = document.getElementById('coRoomNumber').value.trim();
+  if (!room) { showAlert('coAlert', 'Enter room number.', 'error'); return; }
+  const data = await api('/checkout/search?room=' + room);
+  if (!data.length) { showAlert('coAlert', 'No checked-in guest found for room ' + room, 'error'); return; }
+  const g = data[0];
+  coCheckinId = g.id;
+  coRoomId = g.room_id;
+  const today = new Date().toISOString().split('T')[0];
+  const checkinDate = new Date(g.checkin_date);
+  const todayDate = new Date(today);
+  const days = Math.max(1, Math.round((todayDate - checkinDate) / (1000*60*60*24)));
+  const total = days * g.price_per_day;
+
+  document.getElementById('coName').value = g.name;
+  document.getElementById('coMobile').value = g.mobile;
+  document.getElementById('coEmail').value = g.email || '';
+  document.getElementById('coPrice').value = '₹' + g.price_per_day;
+  document.getElementById('coCheckin').value = g.checkin_date;
+  document.getElementById('coToday').value = today;
+  document.getElementById('coDays').value = days;
+  document.getElementById('coTotal').value = '₹' + total.toFixed(2);
+  document.getElementById('coDetails').style.display = 'block';
+}
+
+async function fillCheckout(roomNo) {
+  document.getElementById('coRoomNumber').value = roomNo;
+  searchCheckout();
+}
+
+async function checkOut() {
+  const today = new Date().toISOString().split('T')[0];
+  const days = parseInt(document.getElementById('coDays').value);
+  const totalStr = document.getElementById('coTotal').value.replace('₹','');
+  const total = parseFloat(totalStr);
+  const res = await api('/checkout', 'POST', { checkin_id: coCheckinId, room_id: coRoomId, checkout_date: today, num_days: days, total_amount: total });
+  showAlert('coAlert', res.message, res.success ? 'success' : 'error');
+  if (res.success) { document.getElementById('coDetails').style.display = 'none'; document.getElementById('coRoomNumber').value = ''; loadCheckoutGuests(); }
+}
+
+// === BOOKINGS ===
+async function loadBookings() {
+  const data = await api('/bookings');
+  const pending = data.filter(b => b.status === 'Pending').length;
+  document.getElementById('bookingBadge').textContent = pending;
+  const tb = document.getElementById('bookingsTable');
+  tb.innerHTML = data.map(b => `
+    <tr>
+      <td>${b.id}</td><td>${b.customer_email}</td><td>${b.room_type||'—'}</td>
+      <td>${b.checkin_date||'—'}</td><td>${b.checkout_date||'—'}</td>
+      <td>${b.num_guests}</td><td>₹${b.total_cost}</td><td>₹${b.paid_amount}</td>
+      <td><span class="status ${b.status.toLowerCase()}">${b.status}</span></td>
+      <td>${b.status==='Pending' ? `<button class="btn btn-green" style="padding:5px 10px;font-size:11px;" onclick="quickConfirm(${b.id},'${b.customer_email}')">Confirm</button>` : '—'}</td>
+    </tr>
+  `).join('');
+}
+
+async function quickConfirm(id, email) {
+  if (!confirm('Confirm booking #' + id + '?')) return;
+  const res = await api('/bookings/confirm', 'POST', { booking_id: id, customer_email: email, room_number: '', pending_payment: 0, description: 'Confirmed by admin' });
+  if (res.success) loadBookings();
+}
+
+// === CONFIRMATION ===
+async function loadConfirmationDropdown() {
+  const data = await api('/bookings');
+  const sel = document.getElementById('confCustomer');
+  const pending = data.filter(b => b.status === 'Pending');
+  sel.innerHTML = pending.map(b => `<option value="${b.id}" data-email="${b.customer_email}">${b.customer_email} (Booking #${b.id})</option>`).join('');
+}
+
+async function confirmBooking() {
+  const sel = document.getElementById('confCustomer');
+  const opt = sel.options[sel.selectedIndex];
+  if (!opt) { showAlert('confAlert', 'No pending bookings.', 'error'); return; }
+  const res = await api('/bookings/confirm', 'POST', {
+    booking_id: parseInt(opt.value),
+    customer_email: opt.dataset.email,
+    room_number: document.getElementById('confRoom').value,
+    pending_payment: parseFloat(document.getElementById('confPending').value) || 0,
+    description: document.getElementById('confDesc').value
+  });
+  showAlert('confAlert', res.message, res.success ? 'success' : 'error');
+  if (res.success) loadConfirmationDropdown();
+}
+
+// === BILLS ===
+async function loadBills(date='') {
+  const data = await api('/bills' + (date ? '?date=' + date : ''));
+  const tb = document.getElementById('billsTable');
+  tb.innerHTML = data.length ? data.map(b => `
+    <tr>
+      <td>${b.id}</td><td>${b.room_number}</td><td>${b.customer_name}</td>
+      <td>${b.mobile}</td><td>${b.nationality||'—'}</td><td>${b.gender||'—'}</td>
+      <td>${b.checkin_date}</td><td>${b.checkout_date}</td><td>${b.num_days}</td>
+      <td style="color:#f5c842;font-weight:700;">₹${b.total_amount}</td>
+    </tr>
+  `).join('') : '<tr><td colspan="10" style="text-align:center;color:rgba(255,255,255,0.4);">No bills found</td></tr>';
+}
+
+function searchBills() { loadBills(document.getElementById('billDate').value); }
+
+// === USERS ===
+async function loadUsers() {
+  const data = await api('/customers/all');
+  const pendingCount = data.filter(u => u.is_approved === 0).length;
+  document.getElementById('userBadge').textContent = pendingCount;
+  document.getElementById('stat-users').textContent = pendingCount;
+  const tb = document.getElementById('usersTable');
+  tb.innerHTML = data.map(u => {
+    const statusMap = ['Pending', 'Approved', 'Rejected'];
+    const statusClass = ['pending', 'approved', 'rejected'][u.is_approved];
+    return `<tr>
+      <td>${u.id}</td><td>${u.name}</td><td>${u.email}</td>
+      <td>${u.mobile||'—'}</td><td>${u.created_at}</td>
+      <td><span class="status ${statusClass}">${statusMap[u.is_approved]}</span></td>
+      <td>
+        ${u.is_approved !== 1 ? `<button class="btn btn-green" style="padding:5px 10px;font-size:11px;" onclick="approveUser(${u.id},1)">Approve</button>` : ''}
+        ${u.is_approved !== 2 ? `<button class="btn btn-red" style="padding:5px 10px;font-size:11px;margin-left:5px;" onclick="approveUser(${u.id},2)">Reject</button>` : ''}
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+async function approveUser(id, status) {
+  const res = await api('/customers/approve', 'POST', { id, status });
+  showAlert('usersAlert', res.message, res.success ? 'success' : 'error');
+  if (res.success) { loadUsers(); loadDashboard(); }
+}
+
+// === CHAT ===
+async function loadChat() {
+  const data = await api('/chat/messages');
+  const tb = document.getElementById('chatTable');
+  tb.innerHTML = data.map(m => `
+    <tr onclick="selectedChatEmail='${m.guest_email}';document.getElementById('chatReply').focus();" style="cursor:pointer;">
+      <td>${m.id}</td><td>${m.guest_email}</td><td>${m.message}</td>
+      <td><span class="status ${m.sender==='Admin'?'approved':'pending'}">${m.sender}</span></td>
+      <td>${m.sent_at}</td>
+    </tr>
+  `).join('') || '<tr><td colspan="5" style="text-align:center;color:rgba(255,255,255,0.4);">No messages</td></tr>';
+}
+
+async function sendReply() {
+  if (!selectedChatEmail) { alert('Click on a message row to select the guest.'); return; }
+  const msg = document.getElementById('chatReply').value.trim();
+  if (!msg) return;
+  const res = await api('/chat/send', 'POST', { guest_email: selectedChatEmail, message: msg, sender: 'Admin' });
+  if (res.success) { document.getElementById('chatReply').value = ''; loadChat(); }
+}
+</script>
+</body>
+</html>
